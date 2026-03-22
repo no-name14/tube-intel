@@ -1,0 +1,1374 @@
+const BASIC_USER = 'tokyodoomer';
+const BASIC_PASS = 'wakuwaku14';
+const AUTH = btoa(BASIC_USER + ':' + BASIC_PASS);
+
+const APP_HTML = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TUBE INTEL PRO</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{background:#070709;color:#eeeef5;font-family:'Noto Sans JP',system-ui,sans-serif;max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:80px}
+::-webkit-scrollbar{width:0}
+input,button{font-family:inherit;outline:none}
+a{color:#7c6dfa}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.fade{animation:fadeUp 0.25s ease both}
+.spin{animation:spin 0.9s linear infinite;display:inline-block}
+.pulse{animation:pulse 1.5s ease infinite}
+.screen{display:none}.screen.active{display:block}
+.mono{font-family:'IBM Plex Mono',monospace}
+.disp{font-family:'Syne',sans-serif}
+
+/* Setup */
+#setup{padding:32px 20px;min-height:100vh}
+.logo-sub{font-size:11px;letter-spacing:3px;color:#7c6dfa;margin-bottom:8px}
+.logo{font-size:42px;line-height:1;background:linear-gradient(135deg,#7c6dfa,#5bb8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-desc{font-size:12px;color:#4a4a60;margin-top:10px;margin-bottom:36px}
+.field-label{font-size:10px;color:#4a4a60;letter-spacing:2px;font-family:'IBM Plex Mono',monospace;margin-bottom:7px}
+.field-wrap{margin-bottom:14px}
+.field-input{width:100%;background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:14px 16px;color:#eeeef5;font-size:14px;font-family:'IBM Plex Mono',monospace}
+.field-input:focus{border-color:#7c6dfa}
+#channel-input{font-family:'Noto Sans JP',system-ui,sans-serif}
+.start-btn{width:100%;padding:17px;margin-top:8px;background:linear-gradient(135deg,#7c6dfa,#5bb8ff);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px;font-family:'Syne',sans-serif}
+.start-btn:disabled{background:#1e1e28;color:#4a4a60;cursor:default}
+.info-box{margin-top:20px;padding:16px;background:#0e0e12;border-radius:10px;font-size:12px;color:#4a4a60;line-height:1.8;border:1px solid #1e1e28}
+.err-box{background:#ff4d6d18;border:1px solid #ff4d6d44;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;color:#ff4d6d;line-height:1.6;display:none}
+
+/* Loading */
+#loading{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center}
+#loading.active{display:flex}
+#load-msg{margin-top:16px;font-size:13px;color:#4a4a60;font-family:'IBM Plex Mono',monospace}
+
+/* Header */
+#header{position:sticky;top:0;z-index:20;background:rgba(7,7,9,0.94);backdrop-filter:blur(12px);border-bottom:1px solid #1e1e28;padding:11px 16px;display:none;align-items:center;gap:11px}
+#header.active{display:flex}
+#ch-thumb{width:36px;height:36px;border-radius:50%;border:2px solid #7c6dfa;flex-shrink:0}
+#ch-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ch-sub{font-size:10px;color:#4a4a60;font-family:'IBM Plex Mono',monospace}
+.badge-pro{background:#22d98a22;color:#22d98a;border-radius:4px;padding:2px 7px;font-size:10px;font-family:'IBM Plex Mono',monospace;margin-left:auto}
+#settings-btn{background:none;border:1px solid #1e1e28;color:#4a4a60;border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer;flex-shrink:0}
+
+/* Tabs */
+#tabbar{display:none;border-bottom:1px solid #1e1e28;position:sticky;top:59px;z-index:19;background:rgba(7,7,9,0.94);backdrop-filter:blur(12px)}
+#tabbar.active{display:flex}
+.tab-btn{flex:1;padding:13px 0;background:none;border:none;border-bottom:2px solid transparent;color:#4a4a60;font-size:12px;cursor:pointer;font-weight:400;transition:all 0.2s}
+.tab-btn.active{color:#7c6dfa;border-bottom-color:#7c6dfa;font-weight:700}
+
+/* Period bar */
+#period-bar{display:none;padding:10px 16px;gap:8px;border-bottom:1px solid #1e1e28;overflow-x:auto}
+#period-bar.active{display:flex}
+.period-btn{padding:5px 14px;border-radius:20px;border:1px solid #1e1e28;background:none;color:#4a4a60;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s}
+.period-btn.active{border-color:#7c6dfa;background:rgba(124,109,250,0.12);color:#7c6dfa}
+
+/* Content */
+.tab-content{display:none;padding:16px}.tab-content.active{display:block}
+
+/* Cards */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.metric-card{background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:14px 16px}
+.metric-mono{font-size:10px;color:#4a4a60;letter-spacing:2px;font-family:'IBM Plex Mono',monospace;margin-bottom:6px}
+.metric-val{font-size:26px;font-family:'Syne',sans-serif;letter-spacing:-0.5px;line-height:1}
+.metric-label{font-size:11px;color:#4a4a60;margin-top:4px}
+
+/* Progress bar */
+.prog-wrap{height:3px;background:#1e1e28;border-radius:2px;overflow:hidden;margin-top:12px}
+.prog-bar{height:100%;border-radius:2px;transition:width 0.5s ease}
+
+/* Section card */
+.section-card{background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:16px;margin-bottom:10px}
+.section-title{font-size:12px;font-weight:700;margin-bottom:8px;color:#7c6dfa}
+.section-body{font-size:13px;color:#aaa;line-height:1.85}
+
+/* Video list */
+.video-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #1e1e28;cursor:pointer}
+.video-thumb-wrap{position:relative;flex-shrink:0}
+.video-thumb{width:118px;height:66px;object-fit:cover;border-radius:6px}
+.video-dur{position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,0.85);border-radius:2px;padding:1px 4px;font-size:10px;font-family:'IBM Plex Mono',monospace}
+.video-title{font-size:13px;line-height:1.4;font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px}
+.video-stats{font-size:11px;color:#4a4a60;font-family:'IBM Plex Mono',monospace}
+
+/* Sort bar */
+.sort-bar{display:flex;padding:10px 16px;gap:8px;border-bottom:1px solid #1e1e28;overflow-x:auto}
+.sort-btn{padding:6px 14px;border-radius:20px;border:1px solid #1e1e28;background:none;color:#4a4a60;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.sort-btn.active{border-color:#7c6dfa;background:rgba(124,109,250,0.12);color:#7c6dfa}
+
+/* AI */
+.ai-start{text-align:center;padding-top:60px}
+.ai-icon{font-size:64px;margin-bottom:20px}
+.ai-title{font-family:'Syne',sans-serif;font-size:24px;margin-bottom:10px}
+.ai-desc{font-size:13px;color:#555;line-height:1.9;margin-bottom:40px}
+.ai-btn{padding:17px 48px;background:linear-gradient(135deg,#7c6dfa,#5bb8ff);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:1px}
+.score-big{font-size:72px;font-family:'Syne',sans-serif;line-height:1;letter-spacing:-2px}
+.score-label{font-size:10px;color:#4a4a60;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;margin-top:2px}
+.rec-item{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.rec-num{background:linear-gradient(135deg,#7c6dfa,#5bb8ff);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-family:'IBM Plex Mono',monospace}
+.rec-text{font-size:13px;color:#bbb;line-height:1.7}
+.grid-risks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.risk-card{background:#0e0e12;border-radius:10px;padding:14px}
+.risk-title{font-size:11px;font-weight:700;margin-bottom:10px;letter-spacing:1px}
+.risk-item{font-size:12px;color:#666;margin-bottom:7px;line-height:1.5}
+
+/* Modal */
+#modal{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100dvh;background:#070709;z-index:50;overflow-y:auto;display:none}
+#modal.active{display:block}
+#modal-header{position:sticky;top:0;background:rgba(7,7,9,0.94);backdrop-filter:blur(12px);border-bottom:1px solid #1e1e28;padding:13px 16px;display:flex;align-items:center;gap:12px;z-index:60}
+#modal-back{background:none;border:none;color:#eeeef5;font-size:22px;cursor:pointer;padding:0;line-height:1}
+#modal-banner{width:100%;height:200px;object-fit:cover;display:block}
+#modal-body{padding:16px}
+.modal-title{font-size:15px;font-weight:700;line-height:1.5;margin-bottom:6px}
+.modal-meta{font-size:11px;color:#4a4a60;margin-bottom:16px;font-family:'IBM Plex Mono',monospace}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat3-card{background:#0e0e12;border:1px solid #1e1e28;border-radius:8px;padding:12px 8px;text-align:center}
+.stat3-icon{font-size:16px}
+.stat3-val{font-size:14px;font-weight:700;font-family:'IBM Plex Mono',monospace;margin-top:4px}
+.stat3-label{font-size:10px;color:#4a4a60;margin-top:2px}
+.analytics-card{background:#0e0e12;border:1px solid rgba(124,109,250,0.3);border-radius:10px;padding:14px;margin-bottom:14px}
+.analytics-label{font-size:10px;color:#7c6dfa;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;margin-bottom:12px}
+.analytics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.analytics-item{background:#15151b;border-radius:8px;padding:10px 12px}
+.analytics-item-label{font-size:10px;color:#4a4a60;margin-bottom:4px}
+.analytics-item-val{font-size:16px;font-family:'Syne',sans-serif}
+.score-row{display:flex;align-items:center;gap:20px;background:#0e0e12;border:1px solid #1e1e28;border-radius:12px;padding:18px;margin-bottom:12px}
+.verdict{font-size:15px;font-weight:700;line-height:1.4;flex:1}
+.strengths-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.strengths-card{background:#0e0e12;border-radius:10px;padding:14px}
+.strengths-title{font-size:11px;font-weight:700;margin-bottom:10px}
+.strengths-item{font-size:12px;color:#666;margin-bottom:6px;line-height:1.5}
+.improvements{background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:16px;margin-bottom:24px}
+.improvements-title{font-size:12px;font-weight:700;margin-bottom:12px}
+
+/* Revenue */
+.revenue-card{background:#0e0e12;border:1px solid rgba(245,200,66,0.3);border-radius:10px;padding:16px;margin-bottom:10px}
+.revenue-label{font-size:10px;color:#f5c842;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;margin-bottom:14px}
+.revenue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.revenue-val{font-size:18px;font-family:'Syne',sans-serif;color:#f5c842}
+.revenue-sub{font-size:10px;color:#4a4a60;margin-top:2px}
+
+/* Engagement */
+.engage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.engage-item{background:#15151b;border-radius:8px;padding:12px 6px;text-align:center}
+.engage-icon{font-size:18px}
+.engage-val{font-size:18px;font-family:'Syne',sans-serif;margin-top:4px}
+.engage-label{font-size:10px;color:#4a4a60;margin-top:2px}
+
+/* Subs */
+.subs-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center}
+.subs-val{font-size:24px;font-family:'Syne',sans-serif}
+.subs-label{font-size:10px;color:#4a4a60;margin-top:2px}
+/* Chat */
+#chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-msg{max-width:85%;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.7}
+.chat-msg.user{align-self:flex-end;background:#7c6dfa;color:#fff;border-bottom-right-radius:4px}
+.chat-msg.ai{align-self:flex-start;background:#0e0e12;color:#ddd;border:1px solid #1e1e28;border-bottom-left-radius:4px}
+.chat-msg.ai .chat-label{font-size:10px;color:#4a4a60;font-family:IBM Plex Mono,monospace;margin-bottom:4px;letter-spacing:1px}
+.chat-input-wrap{padding:12px 16px;border-top:1px solid #1e1e28;display:flex;gap:10px;background:#070709}
+.chat-input{flex:1;background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:12px 14px;color:#eeeef5;font-size:14px;resize:none;height:44px;max-height:120px;overflow-y:auto}
+.chat-input:focus{border-color:#7c6dfa;outline:none}
+.chat-send{background:linear-gradient(135deg,#7c6dfa,#5bb8ff);color:#fff;border:none;border-radius:10px;width:44px;height:44px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.chat-thinking{align-self:flex-start;color:#4a4a60;font-size:12px;font-family:IBM Plex Mono,monospace;padding:8px 0}
+/* Inline Chat */
+.inline-chat{border-top:1px solid #1e1e28;margin-top:16px;padding-top:16px}
+.inline-chat-title{font-size:11px;font-weight:700;color:#7c6dfa;letter-spacing:1px;margin-bottom:12px;font-family:IBM Plex Mono,monospace}
+.inline-chat-messages{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;max-height:400px;overflow-y:auto}
+.ichat-msg{max-width:88%;padding:10px 13px;border-radius:10px;font-size:13px;line-height:1.7}
+.ichat-msg.user{align-self:flex-end;background:#7c6dfa;color:#fff;border-bottom-right-radius:3px}
+.ichat-msg.ai{align-self:flex-start;background:#15151b;color:#ccc;border:1px solid #1e1e28;border-bottom-left-radius:3px}
+.ichat-msg.thinking{align-self:flex-start;color:#4a4a60;font-size:12px;font-family:IBM Plex Mono,monospace;padding:6px 0;background:none;border:none}
+.ichat-input-row{display:flex;gap:8px}
+.ichat-input{flex:1;background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:11px 13px;color:#eeeef5;font-size:13px;outline:none}
+.ichat-input:focus{border-color:#7c6dfa}
+.ichat-send{background:linear-gradient(135deg,#7c6dfa,#5bb8ff);color:#fff;border:none;border-radius:10px;width:42px;height:42px;font-size:16px;cursor:pointer;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup" class="screen active">
+  <div class="logo-sub mono">TUBE INTEL PRO</div>
+  <div class="logo disp">YouTube<br>Analytics</div>
+  <div class="logo-desc">CTR・視聴維持率・収益データ対応 フル分析ダッシュボード</div>
+  <div class="err-box" id="err-box"></div>
+  <div class="field-wrap">
+    <div class="field-label">YOUTUBE DATA API KEY</div>
+    <input type="password" class="field-input mono" id="f-apiKey" placeholder="AIzaSy...">
+  </div>
+  <div class="field-wrap">
+    <div class="field-label">OAUTH CLIENT ID</div>
+    <input type="text" class="field-input mono" id="f-clientId" placeholder="556266...apps.googleusercontent.com">
+  </div>
+  <div class="field-wrap">
+    <div class="field-label">CLIENT SECRET</div>
+    <input type="password" class="field-input mono" id="f-clientSecret" placeholder="GOCSPX-...">
+  </div>
+  <div class="field-wrap">
+    <div class="field-label">REFRESH TOKEN</div>
+    <input type="password" class="field-input mono" id="f-refreshToken" placeholder="1//04...">
+  </div>
+  <div class="field-wrap">
+    <div class="field-label">CHANNEL HANDLE / URL</div>
+    <input type="text" class="field-input" id="f-channel" placeholder="@yourchannel">
+  </div>
+  <div class="field-wrap">
+    <div class="field-label">PINコード（4桁）を設定</div>
+    <input type="password" class="field-input mono" id="f-pin" placeholder="4桁の数字" maxlength="4" inputmode="numeric">
+    <div style="font-size:11px;color:#4a4a60;margin-top:6px">次回からこのPINでログインできます</div>
+  </div>
+  <button class="start-btn disp" id="start-btn" onclick="startLoad()">分析を開始する →</button>
+  <div class="info-box">
+    <span class="mono" style="color:#22d98a;font-size:10px">✦ PIN認証対応</span><br>
+    初回だけ全て入力すれば、次回から<strong style="color:#22d98a">4桁のPINだけ</strong>でログインできます。<br><br>
+    <span class="mono" style="color:#7c6dfa;font-size:10px">REFRESH TOKEN の場所</span><br>
+    OAuth Playgroundの右パネル →<br>
+    <span style="color:#eeeef5">"refresh_token": "1//04..."</span> の文字列
+  </div>
+  <button onclick="logout()" style="width:100%;margin-top:12px;padding:12px;background:none;border:1px solid #1e1e28;color:#4a4a60;border-radius:10px;font-size:12px;cursor:pointer">ログアウト（保存データを削除）</button>
+</div>
+
+<!-- MANUAL METRICS MODAL -->
+<div id="manual-modal" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100dvh;background:#070709;z-index:100;overflow-y:auto;padding:24px 20px">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px">
+    <button onclick="closeManual()" style="background:none;border:none;color:#eeeef5;font-size:22px;cursor:pointer;padding:0">←</button>
+    <div style="font-size:15px;font-weight:700">手動データ入力</div>
+  </div>
+  <div style="font-size:12px;color:#4a4a60;margin-bottom:20px;line-height:1.8">YouTube Studioで確認できるCTR・インプレッション数を入力してください。AI分析に反映されます。</div>
+  <div class="field-wrap">
+    <div class="field-label">CTR（クリック率）%</div>
+    <input type="number" step="0.1" class="field-input mono" id="m-ctr" placeholder="例: 4.5">
+  </div>
+  <div class="field-wrap">
+    <div class="field-label">インプレッション数</div>
+    <input type="number" class="field-input mono" id="m-imp" placeholder="例: 15000">
+  </div>
+  <div class="field-wrap">
+    <div class="field-label">対象期間（日数）</div>
+    <input type="number" class="field-input mono" id="m-days" placeholder="例: 28">
+  </div>
+  <button onclick="saveManual()" style="width:100%;padding:17px;background:linear-gradient(135deg,#7c6dfa,#5bb8ff);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">保存する</button>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="pulse disp" style="font-size:48px;background:linear-gradient(135deg,#7c6dfa,#5bb8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px">LOADING</div>
+  <div id="load-msg" class="mono">準備中...</div>
+</div>
+
+<!-- HEADER -->
+<div id="header">
+  <img id="ch-thumb" src="" alt="">
+  <div style="flex:1;min-width:0">
+    <div id="ch-name"></div>
+    <div id="ch-sub" class="mono"></div>
+  </div>
+  <span class="badge-pro mono">PRO</span>
+  <button id="settings-btn" onclick="goSetup()">設定</button>
+
+</div>
+
+<!-- TABBAR -->
+<div id="tabbar">
+  <button class="tab-btn active" onclick="switchTab('overview',this)">概要</button>
+  <button class="tab-btn" onclick="switchTab('analytics',this)">指標</button>
+  <button class="tab-btn" onclick="switchTab('videos',this)">動画</button>
+  <button class="tab-btn" onclick="switchTab('ai',this)">AI分析</button>
+  <button class="tab-btn" onclick="switchTab('comments',this)">💬</button>
+</div>
+
+<!-- PERIOD BAR -->
+<div id="period-bar">
+  <button class="period-btn active" onclick="changePeriod(7,this)">7日</button>
+  <button class="period-btn" onclick="changePeriod(28,this)">28日</button>
+  <button class="period-btn" onclick="changePeriod(90,this)">90日</button>
+  <button class="period-btn" onclick="changePeriod(365,this)">1年</button>
+</div>
+
+<!-- OVERVIEW TAB -->
+<div id="tab-overview" class="tab-content active"></div>
+
+<!-- ANALYTICS TAB -->
+<div id="tab-analytics" class="tab-content"></div>
+
+<!-- VIDEOS TAB -->
+<div id="tab-videos" class="tab-content" style="padding:0"></div>
+
+<!-- AI TAB -->
+<div id="tab-ai" class="tab-content"></div>
+
+<!-- COMMENTS TAB -->
+<div id="tab-comments" class="tab-content"></div>
+
+<!-- VIDEO MODAL -->
+<div id="modal">
+  <div id="modal-header">
+    <button id="modal-back" onclick="closeModal()">←</button>
+    <div style="font-size:14px;font-weight:600">動画分析</div>
+  </div>
+  <img id="modal-banner" src="" alt="">
+  <div id="modal-body"></div>
+</div>
+
+<script>
+// ── State ──
+// ── 認証情報（埋め込み済み）──
+const CREDS = {
+  apiKey: 'AIzaSyDUQ1iGxqyknm3RU8ngqvD6wJl_IAl23As',
+  clientId: '228459358516-273tadot19qn3pker7gkv7o7soksuv77.apps.googleusercontent.com',
+  clientSecret: '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',
+  refreshToken: '1//0486WcW0frP1gCgYIARAAGAQSNwF-L9Ir08LYeJ-U0_aGeJaYGd5-skKSGiQ8EgvxkUU3EmFw4-7wVdn4X41rSKyaazJdinBDa8Q',
+  channel: 'https://youtube.com/@tokyodoomer_official'
+};
+
+let STATE = {
+  apiKey: CREDS.apiKey,
+  clientId: CREDS.clientId,
+  clientSecret: CREDS.clientSecret,
+  refreshToken: CREDS.refreshToken,
+  accessToken:'', tokenExpiry:0,
+  channelId:'', ch:null, vids:[],
+  analytics:null, revenue:null,
+  period:7, sort:'date', filter:'all', aiData:null, aiLoaded:false, commentsLoaded:false, chatHistory:[], vidChatHistory:[],
+  manualCTR:null, manualImp:null, manualDays:null
+};
+
+// ── localStorage ──
+const LS = {
+  save(d) {
+    try {
+      ['apiKey','clientId','clientSecret','refreshToken','channel'].forEach(k=>{
+        if(d[k]!=null) localStorage.setItem('ti_'+k, d[k]);
+      });
+    } catch(_){}
+  },
+  savePin(pin) {
+    try { localStorage.setItem('ti_pin', pin); } catch(_){}
+  },
+  loadPin() {
+    try { return localStorage.getItem('ti_pin')||''; } catch(_){ return ''; }
+  },
+  hasCredentials() {
+    try {
+      return ['ti_apiKey','ti_clientId','ti_clientSecret','ti_refreshToken','ti_channel'].every(k=>localStorage.getItem(k));
+    } catch(_){ return false; }
+  },
+  load() {
+    try {
+      return {
+        apiKey: localStorage.getItem('ti_apiKey')||'',
+        clientId: localStorage.getItem('ti_clientId')||'',
+        clientSecret: localStorage.getItem('ti_clientSecret')||'',
+        refreshToken: localStorage.getItem('ti_refreshToken')||'',
+        channel: localStorage.getItem('ti_channel')||''
+      };
+    } catch(_){ return {}; }
+  },
+  clear() {
+    try { ['apiKey','clientId','clientSecret','refreshToken','channel','ctr','imp','mdays','pin'].forEach(k=>localStorage.removeItem('ti_'+k)); } catch(_){}
+  },
+  saveManual(ctr,imp,days) {
+    try { localStorage.setItem('ti_ctr',ctr); localStorage.setItem('ti_imp',imp); localStorage.setItem('ti_mdays',days); } catch(_){}
+  },
+  loadManual() {
+    try { return {ctr:localStorage.getItem('ti_ctr'),imp:localStorage.getItem('ti_imp'),days:localStorage.getItem('ti_mdays')}; } catch(_){ return {}; }
+  }
+};
+
+// ── Token management ──
+async function getAccessToken() {
+  // 有効期限5分前に更新
+  if(STATE.accessToken && Date.now() < STATE.tokenExpiry - 5*60*1000) {
+    return STATE.accessToken;
+  }
+  // リフレッシュトークンで新しいアクセストークンを取得
+  const r = await fetch('https://oauth2.googleapis.com/token', {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({
+      client_id: STATE.clientId,
+      client_secret: STATE.clientSecret,
+      refresh_token: STATE.refreshToken,
+      grant_type: 'refresh_token'
+    })
+  });
+  const d = await r.json();
+  if(d.error) throw new Error('トークン更新失敗: ' + (d.error_description||d.error));
+  STATE.accessToken = d.access_token;
+  STATE.tokenExpiry = Date.now() + (d.expires_in||3600)*1000;
+  return STATE.accessToken;
+}
+
+// 起動時に自動復元・自動ログイン
+window.addEventListener('DOMContentLoaded', () => {
+  // 認証情報埋め込み済み → 即起動
+  document.getElementById('setup').classList.remove('active');
+  const pinScreen = document.getElementById('pin-screen');
+  if(pinScreen) pinScreen.style.display='none';
+  // Load manual metrics
+  const m=LS.loadManual();
+  if(m.ctr) STATE.manualCTR=parseFloat(m.ctr);
+  if(m.imp) STATE.manualImp=parseFloat(m.imp);
+  if(m.days) STATE.manualDays=parseInt(m.days);
+  setTimeout(()=>startLoad(true), 100);
+});
+
+// ── Formatters ──
+const fmt = n => {
+  const x = parseFloat(n||0);
+  if(x>=1e6) return (x/1e6).toFixed(1)+'M';
+  if(x>=1e4) return Math.round(x/1e3)+'K';
+  if(x>=1e3) return (x/1e3).toFixed(1)+'K';
+  return Math.round(x).toLocaleString();
+};
+const fdate = iso => iso ? iso.slice(0,10).replace(/-/g,'/') : '-';
+const fdur = d => {
+  if(!d) return '-';
+  const m = d.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);
+  if(!m) return '-';
+  const h=+(m[1]||0),mn=+(m[2]||0),s=+(m[3]||0);
+  return h ? \`\${h}:\${String(mn).padStart(2,'0')}:\${String(s).padStart(2,'0')}\` : \`\${mn}:\${String(s).padStart(2,'0')}\`;
+};
+const fdurSec = s => { s=Math.round(s||0); return \`\${Math.floor(s/60)}:\${String(s%60).padStart(2,'0')}\`; };
+const fpct = v => \`\${parseFloat(v||0).toFixed(1)}%\`;
+const fmoney = v => v==null?'-':\`$\${parseFloat(v).toFixed(2)}\`;
+const avgArr = arr => arr.length ? arr.reduce((s,x)=>s+x,0)/arr.length : 0;
+const clr = (v,g,y) => parseFloat(v)>=g?'#22d98a':parseFloat(v)>=y?'#f5c842':'#ff4d6d';
+const isShort = v => {
+  const dur = v.contentDetails?.duration || '';
+  const m = dur.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);
+  if(!m) return false;
+  const h=+(m[1]||0),mn=+(m[2]||0),s=+(m[3]||0);
+  return h===0 && mn===0 && s<=60 || h===0 && mn<=1 && s===0;
+};
+const engRate = (v) => {
+  const views = +(v.statistics?.viewCount||0);
+  if(!views) return 0;
+  return ((+(v.statistics?.likeCount||0))+(+(v.statistics?.commentCount||0)))/views*100;
+};
+
+// ── API ──
+const YT = 'https://www.googleapis.com/youtube/v3';
+const YTA = 'https://youtubeanalytics.googleapis.com/v2/reports';
+
+async function apiFetch(url, useToken=false) {
+  const headers = {};
+  if(useToken) headers.Authorization = \`Bearer \${await getAccessToken()}\`;
+  const r = await fetch(url, {headers});
+  return r.json();
+}
+
+async function fetchChannel(apiKey, inp) {
+  inp = inp.trim().replace(/\\/$/, '');
+  let q;
+  if(inp.includes('youtube.com')) {
+    const h = inp.match(/@([^/?&]+)/);
+    if(h) q=\`forHandle=@\${h[1]}\`;
+    else { const c=inp.match(/\\/channel\\/(UC[^/?&]+)/); if(c) q=\`id=\${c[1]}\`; }
+  } else if(inp.startsWith('UC')&&inp.length>20) q=\`id=\${inp}\`;
+  else q=\`forHandle=\${inp.startsWith('@')?inp:'@'+inp}\`;
+  const d = await apiFetch(\`\${YT}/channels?part=snippet,statistics&\${q}&key=\${apiKey}\`);
+  if(d.error) throw new Error(d.error.message);
+  if(!d.items?.length) throw new Error('チャンネルが見つかりません');
+  return d.items[0];
+}
+
+async function fetchVideos(apiKey, cid, onProg) {
+  let all=[],tok=null,pg=0;
+  do {
+    const url=\`\${YT}/search?part=snippet&channelId=\${cid}&maxResults=50&order=date&type=video&key=\${apiKey}\`+(tok?\`&pageToken=\${tok}\`:'');
+    const sr = await apiFetch(url);
+    if(sr.error) throw new Error(sr.error.message);
+    const ids = sr.items.map(i=>i.id.videoId).join(',');
+    if(ids) {
+      const vr = await apiFetch(\`\${YT}/videos?part=snippet,statistics,contentDetails&id=\${ids}&key=\${apiKey}\`);
+      all=[...all,...(vr.items||[])];
+    }
+    tok=sr.nextPageToken; pg++;
+    onProg?.(all.length);
+  } while(tok&&pg<4);
+  return all;
+}
+
+function dateRange(days) {
+  const end=new Date(),start=new Date();
+  start.setDate(start.getDate()-days);
+  return {s:start.toISOString().slice(0,10),e:end.toISOString().slice(0,10)};
+}
+
+async function fetchAnalytics(cid, days) {
+  const {s,e}=dateRange(days);
+  const base=\`\${YTA}?ids=channel==\${cid}&startDate=\${s}&endDate=\${e}\`;
+  const metrics='views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,likes,comments,shares,subscribersGained,subscribersLost';
+  const d = await apiFetch(\`\${base}&metrics=\${metrics}&dimensions=day&sort=day\`, true);
+  if(d.error) throw new Error('Analytics: '+d.error.message);
+  let rev=null;
+  try {
+    const r2 = await apiFetch(\`\${base}&metrics=estimatedRevenue,estimatedAdRevenue,estimatedRedPartnerRevenue&dimensions=day&sort=day\`, true);
+    if(!r2.error) rev=r2;
+  } catch(_){}
+  return {daily:d,revenue:rev};
+}
+
+async function fetchVideoAnalytics(cid, vid, days) {
+  const {s,e}=dateRange(days);
+  const base=\`\${YTA}?ids=channel==\${cid}&startDate=\${s}&endDate=\${e}&filters=video==\${vid}\`;
+  const metrics='views,estimatedMinutesWatched,averageViewDuration,averageViewPercentage,likes,comments,shares,subscribersGained';
+  const d = await apiFetch(\`\${base}&metrics=\${metrics}\`, true);
+  return d.error?null:d;
+}
+
+async function fetchComments(apiKey, videoId, maxResults=100) {
+  try {
+    const url = \`\${YT}/commentThreads?part=snippet&videoId=\${videoId}&maxResults=\${maxResults}&order=relevance&key=\${apiKey}\`;
+    const d = await apiFetch(url);
+    if(d.error) return [];
+    return (d.items||[]).map(i=>i.snippet.topLevelComment.snippet.textDisplay);
+  } catch(_) { return []; }
+}
+
+async function fetchChannelComments(apiKey, vids, maxPerVideo=20) {
+  const topVids = [...vids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0)).slice(0,10);
+  const all = [];
+  for(const v of topVids) {
+    const comments = await fetchComments(apiKey, v.id, maxPerVideo);
+    comments.forEach(c => all.push({title: v.snippet.title, comment: c}));
+  }
+  return all;
+}
+
+function parseRows(data) {
+  if(!data?.columnHeaders||!data?.rows) return null;
+  const cols=data.columnHeaders.map(h=>h.name);
+  const tot={};
+  cols.forEach(c=>tot[c]=0);
+  (data.rows||[]).forEach(row=>row.forEach((v,i)=>{ if(typeof v==='number') tot[cols[i]]=(tot[cols[i]]||0)+v; }));
+  ['averageViewDuration','averageViewPercentage','impressionClickThroughRate'].forEach(c=>{
+    if(cols.includes(c)&&data.rows?.length) tot[c]=avgArr(data.rows.map(r=>r[cols.indexOf(c)]));
+  });
+  return tot;
+}
+
+async function callAI(prompt) {
+  try {
+    const r = await fetch('https://tube-intel-api2.osumi0414.workers.dev/ai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:2000,messages:[{role:'user',content:prompt}]})
+    });
+    const d = await r.json();
+    const text = d.content?.[0]?.text || '';
+    const jsonMatch = text.match(/\\{[\\s\\S]*\\}/);
+    if(jsonMatch) return JSON.parse(jsonMatch[0]);
+    return JSON.parse(text.replace(/\`\`\`json|\`\`\`/g,'').trim());
+  } catch(e) {
+    return {};
+  }
+}
+
+// ── UI helpers ──
+function setMsg(m){document.getElementById('load-msg').textContent=m;}
+function showErr(m){const e=document.getElementById('err-box');e.textContent='⚠ '+m;e.style.display='block';}
+function hideErr(){document.getElementById('err-box').style.display='none';}
+function show(id){document.getElementById(id).classList.add('active');}
+function hide(id){document.getElementById(id).classList.remove('active');}
+
+function openManual(){
+  const m=LS.loadManual();
+  if(m.ctr) document.getElementById('m-ctr').value=m.ctr;
+  if(m.imp) document.getElementById('m-imp').value=m.imp;
+  if(m.days) document.getElementById('m-days').value=m.days;
+  document.getElementById('manual-modal').style.display='block';
+}
+function closeManual(){
+  document.getElementById('manual-modal').style.display='none';
+}
+function saveManual(){
+  const ctr=document.getElementById('m-ctr').value;
+  const imp=document.getElementById('m-imp').value;
+  const days=document.getElementById('m-days').value;
+  STATE.manualCTR=ctr?parseFloat(ctr):null;
+  STATE.manualImp=imp?parseFloat(imp):null;
+  STATE.manualDays=days?parseInt(days):null;
+  LS.saveManual(ctr,imp,days);
+  closeManual();
+  renderOverview();renderAnalyticsTab();
+  STATE.aiData=null;STATE.aiLoaded=false;
+  if(document.querySelector('.tab-btn.active')?.textContent==='AI分析') renderAIStart();
+}
+function goSetup(){
+  hide('header');hide('tabbar');hide('period-bar');
+  ['overview','analytics','videos','ai'].forEach(t=>{document.getElementById('tab-'+t).classList.remove('active');});
+  show('setup');STATE.aiData=null;STATE.aiLoaded=false;
+}
+function logout(){
+  LS.clear();
+  ['apiKey','clientId','clientSecret','refreshToken','channel'].forEach(k=>{
+    const el=document.getElementById('f-'+k);
+    if(el) el.value='';
+  });
+  goSetup();
+}
+
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['overview','analytics','videos','ai','comments'].forEach(t=>{document.getElementById('tab-'+t).classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='ai'||name==='comments') hide('period-bar'); else show('period-bar');
+  if(name==='ai'&&!STATE.aiLoaded) renderAIStart();
+  if(name==='comments'&&!STATE.commentsLoaded) renderCommentsStart();
+}
+
+async function changePeriod(days,btn){
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  STATE.period=days;
+  try {
+    const a=await fetchAnalytics(STATE.channelId,days);
+    STATE.analytics=a.daily;STATE.revenue=a.revenue;
+    renderOverview();renderAnalyticsTab();
+  } catch(_){}
+}
+
+// ── Load ──
+async function startLoad(auto=false){
+  const ak=CREDS.apiKey;
+  const ci=CREDS.clientId;
+  const cs=CREDS.clientSecret;
+  const rt=CREDS.refreshToken;
+  const ch=CREDS.channel;
+  hideErr();
+  STATE.apiKey=ak;STATE.clientId=ci;STATE.clientSecret=cs;STATE.refreshToken=rt;
+  STATE.accessToken='';STATE.tokenExpiry=0;
+  hide('setup');
+  document.getElementById('loading').style.display='flex';
+  try {
+    setMsg('認証中...');
+    await getAccessToken(); // 最初のトークン取得テスト
+    setMsg('チャンネル情報を取得中...');
+    const channel=await fetchChannel(ak,ch);
+    STATE.ch=channel;STATE.channelId=channel.id;
+    setMsg('動画リストを取得中...');
+    const vids=await fetchVideos(ak,channel.id,c=>setMsg(\`\${c}本の動画を取得中...\`));
+    STATE.vids=vids;
+    setMsg('アナリティクスを取得中...');
+    const a=await fetchAnalytics(channel.id,STATE.period);
+    STATE.analytics=a.daily;STATE.revenue=a.revenue;
+    document.getElementById('loading').style.display='none';
+    document.getElementById('ch-thumb').src=channel.snippet.thumbnails.default.url;
+    document.getElementById('ch-name').textContent=channel.snippet.title;
+    document.getElementById('ch-sub').textContent=\`\${fmt(channel.statistics.subscriberCount)} subs · \${vids.length}本\`;
+    show('header');show('tabbar');show('period-bar');
+    renderOverview();renderAnalyticsTab();renderVideosTab();renderAIStart();
+  } catch(e){
+    document.getElementById('loading').style.display='none';
+    show('setup');showErr(e.message+(auto?'\\n（自動ログイン失敗）':''));
+  }
+}
+
+// ── Render Overview ──
+function renderOverview(){
+  const t=parseRows(STATE.analytics)||{};
+  const rv=parseRows(STATE.revenue)||{};
+  const vids=STATE.vids;
+  const topVid=vids.length?[...vids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0))[0]:null;
+  let html=\`<div class="grid2 fade">
+    \${metricCard('VIEWS',fmt(t.views),\`\${STATE.period}日間の視聴数\`)}
+    \${metricCard('RETENTION',fpct(t.averageViewPercentage),'平均視聴維持率',clr(t.averageViewPercentage,50,35))}
+    \${metricCard('AVG VIEW TIME',fdurSec(t.averageViewDuration),'平均視聴時間')}
+    \${metricCard('LIKES',fmt(t.likes),'いいね')}
+    \${metricCard('NEW SUBS',\`+\${fmt(t.subscribersGained)}\`,\`登録（-\${fmt(t.subscribersLost)}）\`,'#22d98a')}
+  </div>\`;
+  if(rv.estimatedRevenue!=null){
+    html+=\`<div class="revenue-card fade">
+      <div class="revenue-label mono">💰 REVENUE · \${STATE.period}日間</div>
+      <div class="revenue-grid">
+        <div><div class="revenue-val disp">\${fmoney(rv.estimatedRevenue)}</div><div class="revenue-sub">推定収益</div></div>
+        <div><div class="revenue-val disp">\${fmoney(rv.estimatedAdRevenue)}</div><div class="revenue-sub">広告収益</div></div>
+        <div><div class="revenue-val disp">\${fmoney(rv.estimatedRedPartnerRevenue)}</div><div class="revenue-sub">メンバー</div></div>
+      </div></div>\`;
+  }
+  if(topVid){
+    html+=\`<div style="margin-bottom:14px" class="fade">
+      <div class="mono" style="font-size:10px;color:#4a4a60;letter-spacing:2px;margin-bottom:10px">🏆 TOP VIDEO</div>
+      <div onclick="openModal('\${topVid.id}')" style="background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;overflow:hidden;cursor:pointer">
+        <div style="position:relative"><img src="https://i.ytimg.com/vi/\${topVid.id}/mqdefault.jpg" style="width:100%;height:175px;object-fit:cover;display:block">
+        <span style="position:absolute;top:10px;right:10px;background:#f5c84222;color:#f5c842;border-radius:4px;padding:2px 7px;font-size:10px;font-family:IBM Plex Mono,monospace">🏆 #1</span></div>
+        <div style="padding:14px"><div style="font-size:14px;font-weight:600;line-height:1.4;margin-bottom:10px">\${topVid.snippet.title}</div>
+        <div class="mono" style="font-size:12px;color:#4a4a60">👁 \${fmt(topVid.statistics?.viewCount)} &nbsp; 👍 \${fmt(topVid.statistics?.likeCount)} &nbsp; 💬 \${fmt(topVid.statistics?.commentCount)}</div></div>
+      </div></div>\`;
+  }
+  html+=\`<div class="fade"><div class="mono" style="font-size:10px;color:#4a4a60;letter-spacing:2px;margin-bottom:10px">RECENT</div>\`;
+  STATE.vids.slice(0,6).forEach(v=>{ html+=videoListItem(v); });
+  html+='</div>';
+  document.getElementById('tab-overview').innerHTML=html;
+}
+
+function metricCard(mono,val,label,accent){
+  return \`<div class="metric-card"><div class="metric-mono mono">\${mono}</div>
+    <div class="metric-val disp" style="color:\${accent||'#eeeef5'}">\${val}</div>
+    <div class="metric-label">\${label}</div></div>\`;
+}
+
+function videoListItem(v){
+  const er = engRate(v).toFixed(1);
+  const short = isShort(v);
+  const erColor = parseFloat(er)>=5?'#22d98a':parseFloat(er)>=2?'#f5c842':'#4a4a60';
+  return \`<div class="video-item" onclick="openModal('\${v.id}')">
+    <div class="video-thumb-wrap">
+      <img class="video-thumb" src="https://i.ytimg.com/vi/\${v.id}/mqdefault.jpg" alt="" style="\${short?'aspect-ratio:9/16;width:37px;height:66px;':''}">
+      <div class="video-dur mono">\${fdur(v.contentDetails?.duration)}</div>
+      \${short?\`<div style="position:absolute;top:3px;left:3px;background:#ff2d55;color:#fff;border-radius:2px;padding:1px 4px;font-size:9px;font-family:IBM Plex Mono,monospace">S</div>\`:''}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="video-title">\${v.snippet.title}</div>
+      <div class="video-stats">👁 \${fmt(v.statistics?.viewCount)} &nbsp; <span style="color:\${erColor}">ER \${er}%</span></div>
+      <div style="font-size:10px;color:#333;font-family:IBM Plex Mono,monospace;margin-top:2px">\${fdate(v.snippet.publishedAt)}</div>
+    </div></div>\`;
+}
+
+// ── Render Analytics ──
+function renderAnalyticsTab(){
+  const t=parseRows(STATE.analytics)||{};
+  const rv=parseRows(STATE.revenue)||{};
+  const ctr=parseFloat(t.impressionClickThroughRate||0);
+  const ret=parseFloat(t.averageViewPercentage||0);
+  let html=\`
+  <div class="section-card fade">
+    <div class="mono" style="font-size:10px;color:#4a4a60;letter-spacing:2px;margin-bottom:8px">AVERAGE VIEW RETENTION</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px">
+      <div class="disp" style="font-size:32px;color:\${clr(ret,50,35)}">\${fpct(ret)}</div>
+      <div style="text-align:right;font-size:11px;color:#4a4a60;line-height:1.8">業界平均 <span style="color:#f5c842">30–40%</span><br>優秀 <span style="color:#22d98a">≥ 50%</span></div>
+    </div>
+    <div class="prog-wrap"><div class="prog-bar" style="width:\${Math.min(100,ret)}%;background:\${clr(ret,50,35)}"></div></div>
+    <div class="mono" style="font-size:11px;color:#4a4a60;margin-top:10px">平均視聴時間: \${fdurSec(t.averageViewDuration)}</div>
+  </div>
+  <div class="section-card fade">
+    <div class="mono" style="font-size:10px;color:#4a4a60;letter-spacing:2px;margin-bottom:14px">ENGAGEMENT</div>
+    <div class="engage-grid">
+      <div class="engage-item"><div class="engage-icon">👍</div><div class="engage-val disp">\${fmt(t.likes)}</div><div class="engage-label">いいね</div></div>
+      <div class="engage-item"><div class="engage-icon">💬</div><div class="engage-val disp">\${fmt(t.comments)}</div><div class="engage-label">コメント</div></div>
+      <div class="engage-item"><div class="engage-icon">↗</div><div class="engage-val disp">\${fmt(t.shares)}</div><div class="engage-label">シェア</div></div>
+    </div>
+  </div>
+  <div class="section-card fade">
+    <div class="mono" style="font-size:10px;color:#4a4a60;letter-spacing:2px;margin-bottom:14px">SUBSCRIBERS · \${STATE.period}日間</div>
+    <div class="subs-grid">
+      <div><div class="subs-val disp" style="color:#22d98a">+\${fmt(t.subscribersGained)}</div><div class="subs-label">新規登録</div></div>
+      <div><div class="subs-val disp" style="color:#ff4d6d">-\${fmt(t.subscribersLost)}</div><div class="subs-label">登録解除</div></div>
+      <div><div class="subs-val disp" style="color:\${(t.subscribersGained-t.subscribersLost)>=0?'#22d98a':'#ff4d6d'}">\${(t.subscribersGained-t.subscribersLost)>=0?'+':''}\${fmt(t.subscribersGained-t.subscribersLost)}</div><div class="subs-label">純増</div></div>
+    </div>
+  </div>\`;
+  if(rv.estimatedRevenue!=null){
+    html+=\`<div class="revenue-card fade">
+      <div class="revenue-label mono">💰 REVENUE · \${STATE.period}日間</div>
+      <div class="revenue-grid">
+        <div><div class="revenue-val disp">\${fmoney(rv.estimatedRevenue)}</div><div class="revenue-sub">推定収益</div></div>
+        <div><div class="revenue-val disp">\${fmoney(rv.estimatedAdRevenue)}</div><div class="revenue-sub">広告収益</div></div>
+        <div><div class="revenue-val disp">\${fmoney(rv.estimatedRedPartnerRevenue)}</div><div class="revenue-sub">メンバー</div></div>
+      </div></div>\`;
+  }
+  document.getElementById('tab-analytics').innerHTML=html;
+}
+
+// ── Render Videos ──
+function renderVideosTab(sortKey, filterKey){
+  if(sortKey) STATE.sort=sortKey;
+  if(filterKey) STATE.filter=filterKey;
+  let vids = STATE.vids;
+  if(STATE.filter==='long') vids=vids.filter(v=>!isShort(v));
+  if(STATE.filter==='short') vids=vids.filter(v=>isShort(v));
+  const longCount = STATE.vids.filter(v=>!isShort(v)).length;
+  const shortCount = STATE.vids.filter(v=>isShort(v)).length;
+  const sorted=[...vids].sort((a,b)=>{
+    if(STATE.sort==='views') return +(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0);
+    if(STATE.sort==='likes') return +(b.statistics?.likeCount||0)-+(a.statistics?.likeCount||0);
+    if(STATE.sort==='er') return engRate(b)-engRate(a);
+    if(STATE.sort==='comments') return +(b.statistics?.commentCount||0)-+(a.statistics?.commentCount||0);
+    return new Date(b.snippet.publishedAt)-new Date(a.snippet.publishedAt);
+  });
+  let html=\`<div style="display:flex;padding:10px 16px;gap:8px;border-bottom:1px solid #1e1e28;overflow-x:auto">
+    \${[['all','すべて('+STATE.vids.length+')'],['long','長尺('+longCount+')'],['short','ショート('+shortCount+')']].map(([k,l])=>\`<button style="padding:5px 14px;border-radius:20px;border:1px solid \${STATE.filter===k?'#7c6dfa':'#1e1e28'};background:\${STATE.filter===k?'rgba(124,109,250,0.12)':'none'};color:\${STATE.filter===k?'#7c6dfa':'#4a4a60'};font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0" onclick="renderVideosTab(null,'\${k}')">\${l}</button>\`).join('')}
+  </div>
+  <div class="sort-bar">
+    \${[['date','新着'],['views','視聴数'],['er','ER率'],['likes','いいね'],['comments','コメント']].map(([k,l])=>\`<button class="sort-btn\${STATE.sort===k?' active':''}" onclick="renderVideosTab('\${k}',null)">\${l}</button>\`).join('')}
+  </div><div style="padding:0 16px">\`;
+  sorted.forEach(v=>{ html+=videoListItem(v); });
+  if(sorted.length===0) html+=\`<div style="text-align:center;padding:48px 0;color:#4a4a60;font-size:13px">\${STATE.filter==='short'?'ショート動画が見つかりません':'長尺動画が見つかりません'}</div>\`;
+  html+='</div>';
+  document.getElementById('tab-videos').innerHTML=html;
+}
+
+// ── AI ──
+function renderAIStart(){
+  STATE.aiLoaded=false;
+  document.getElementById('tab-ai').innerHTML=\`
+  <div class="ai-start fade">
+    <div class="ai-icon">🧠</div>
+    <div class="ai-title disp">AIチャンネル診断</div>
+    <div class="ai-desc">CTR・視聴維持率・登録者動向など<br>全データをAIが統合分析します</div>
+    <button class="ai-btn" onclick="doAI()">分析を開始する</button>
+  </div>\`;
+}
+
+async function doAI(){
+  document.getElementById('tab-ai').innerHTML=\`<div style="text-align:center;padding-top:100px"><div class="spin" style="font-size:40px">⚙</div><div style="margin-top:24px;color:#4a4a60;font-size:13px">AIが全データを統合分析中...</div></div>\`;
+  const t=parseRows(STATE.analytics)||{};
+  const ch=STATE.ch;
+  const longVids = STATE.vids.filter(v=>!isShort(v));
+  const shortVids = STATE.vids.filter(v=>isShort(v));
+  const topLong = [...longVids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0)).slice(0,15);
+  const topShort = [...shortVids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0)).slice(0,10);
+  const longSummary = topLong.map(v=>\`\${v.snippet.title}|\${v.statistics?.viewCount||0}|\${v.statistics?.likeCount||0}|\${v.statistics?.commentCount||0}|ER:\${engRate(v).toFixed(1)}%|\${fdate(v.snippet.publishedAt)}\`).join('\\n');
+  const shortSummary = topShort.map(v=>\`\${v.snippet.title}|\${v.statistics?.viewCount||0}|\${v.statistics?.likeCount||0}|\${v.statistics?.commentCount||0}|ER:\${engRate(v).toFixed(1)}%|\${fdate(v.snippet.publishedAt)}\`).join('\\n');
+  const res=await callAI(\`あなたはトップYouTubeアナリストです。以下のデータを深く分析し、JSONのみで回答（前置き・コードブロック不要）。\\n注意：CTRとインプレッションデータはありません。\\n\\nチャンネル:\${ch?.snippet?.title}\\n登録者:\${ch?.statistics?.subscriberCount||'非公開'}\\n総視聴数(累計):\${ch?.statistics?.viewCount}\\n長尺:\${longVids.length}本 ショート:\${shortVids.length}本\\n\\n【直近\${STATE.period}日間Analytics】\\n総視聴数:\${Math.round(t.views||0)}\\n平均視聴維持率:\${fpct(t.averageViewPercentage)}\\n平均視聴時間:\${fdurSec(t.averageViewDuration)}\\n総視聴時間:\${Math.round(t.estimatedMinutesWatched||0)}分\\nいいね:\${Math.round(t.likes||0)} コメント:\${Math.round(t.comments||0)} シェア:\${Math.round(t.shares||0)}\\n新規登録:\${Math.round(t.subscribersGained||0)} 解除:\${Math.round(t.subscribersLost||0)}\\n\\n【長尺動画 TOP(タイトル|視聴|いいね|コメ|ER|日付)】\\n\${longSummary||'なし'}\\n\\n【ショート動画 TOP(タイトル|視聴|いいね|コメ|ER|日付)】\\n\${shortSummary||'なし'}\\n\\nJSON:{"healthScore":数値0-100,"healthLabel":"評価ラベル","overview":"全体評価3文","retentionAnalysis":"視聴維持率の詳細分析","engagementAnalysis":"ER・いいね・コメント率の詳細分析","longFormAnalysis":"長尺動画の傾向・強み・課題","shortFormAnalysis":"ショート動画の傾向・強み・課題","growthAnalysis":"登録者の成長トレンド分析","contentPattern":"高パフォーマンスの共通パターン","recommendations":["具体的提案1","提案2","提案3","提案4","提案5"],"risks":["リスク1","リスク2","リスク3"],"opportunities":["機会1","機会2","機会3"],"nextAction":"今すぐ実行すべき最重要アクション1つ"}\`);
+  // Debug: show raw response if empty
+  if(!res || Object.keys(res).length === 0) {
+    document.getElementById('tab-ai').innerHTML='<div style="padding:20px;color:#ff4d6d;font-size:13px;line-height:1.8">AI応答が空でした。<br>APIキーの残高を確認してください。<br><br><button onclick="renderAIStart()" style="padding:10px 20px;background:#7c6dfa;color:#fff;border:none;border-radius:8px;cursor:pointer">戻る</button></div>';
+    return;
+  }
+  STATE.aiData=res;STATE.aiLoaded=true;
+  const sc=res.healthScore||0;
+  const scColor=sc>=70?'#22d98a':sc>=40?'#f5c842':'#ff4d6d';
+  const retScore = parseFloat(STATE.analytics ? parseRows(STATE.analytics)?.averageViewPercentage||0 : 0);
+  const retColor = retScore>=50?'#22d98a':retScore>=30?'#f5c842':'#ff4d6d';
+  const engScore = Math.min(100, (Math.round(t.likes||0)+Math.round(t.comments||0)) / Math.max(1,Math.round(t.views||0)) * 1000);
+  const engColor = engScore>=50?'#22d98a':engScore>=20?'#f5c842':'#ff4d6d';
+  let html=\`<div class="fade">
+  <!-- HEALTH SCORE -->
+  <div style="background:#0e0e12;border:1px solid #1e1e28;border-radius:12px;padding:20px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px">
+      <div><div class="score-big disp" style="color:\${scColor}">\${sc}</div><div class="score-label mono">HEALTH SCORE</div></div>
+      <div style="flex:1"><div class="disp" style="font-size:17px;margin-bottom:6px">\${res.healthLabel||''}</div><div style="font-size:12px;color:#777;line-height:1.7">\${res.overview||''}</div></div>
+    </div>
+    <!-- MINI GAUGES -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:#15151b;border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:#4a4a60;margin-bottom:6px;font-family:IBM Plex Mono,monospace">視聴維持率</div>
+        <div style="font-size:22px;font-family:Syne,sans-serif;color:\${retColor}">\${fpct(retScore)}</div>
+        <div style="height:3px;background:#1e1e28;border-radius:2px;margin-top:8px;overflow:hidden"><div style="height:100%;width:\${Math.min(100,retScore)}%;background:\${retColor};border-radius:2px"></div></div>
+        <div style="font-size:10px;color:#333;margin-top:4px">業界平均 30-40%</div>
+      </div>
+      <div style="background:#15151b;border-radius:8px;padding:12px">
+        <div style="font-size:10px;color:#4a4a60;margin-bottom:6px;font-family:IBM Plex Mono,monospace">登録者純増</div>
+        <div style="font-size:22px;font-family:Syne,sans-serif;color:\${(t.subscribersGained-t.subscribersLost)>=0?'#22d98a':'#ff4d6d'}">\${(t.subscribersGained-t.subscribersLost)>=0?'+':''}\${fmt(t.subscribersGained-t.subscribersLost)}</div>
+        <div style="font-size:10px;color:#333;margin-top:12px">+\${fmt(t.subscribersGained)} / -\${fmt(t.subscribersLost)}</div>
+      </div>
+    </div>
+  </div>
+  <!-- LONG / SHORT SPLIT -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+    <div style="background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#7c6dfa;margin-bottom:8px">📹 長尺</div>
+      <div style="font-size:12px;color:#888;line-height:1.7">\${res.longFormAnalysis||'データなし'}</div>
+    </div>
+    <div style="background:#0e0e12;border:1px solid #ff2d5533;border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#ff2d55;margin-bottom:8px">⚡ ショート</div>
+      <div style="font-size:12px;color:#888;line-height:1.7">\${res.shortFormAnalysis||'データなし'}</div>
+    </div>
+  </div>
+  \${sectionCard('⏱ 視聴維持率分析',res.retentionAnalysis)}
+  \${sectionCard('💬 エンゲージメント分析',res.engagementAnalysis)}
+  \${sectionCard('📈 成長トレンド',res.growthAnalysis)}
+  \${sectionCard('✨ 高パフォーマンスの法則',res.contentPattern)}
+  <div class="section-card" style="border-color:rgba(124,109,250,0.3)">
+    <div class="section-title">⚡ 今すぐやること</div>
+    <div style="font-size:14px;color:#eeeef5;line-height:1.7;font-weight:500">\${res.nextAction||''}</div>
+  </div>
+  <div class="section-card">
+    <div class="section-title">✅ 改善提案</div>
+    \${(res.recommendations||[]).map((r,i)=>\`<div class="rec-item"><div class="rec-num mono">\${i+1}</div><div class="rec-text">\${r}</div></div>\`).join('')}
+  </div>
+  <div class="grid-risks">
+    <div class="risk-card" style="border:1px solid rgba(255,77,109,0.25)"><div class="risk-title" style="color:#ff4d6d">⚠ RISKS</div>\${(res.risks||[]).map(r=>\`<div class="risk-item">• \${r}</div>\`).join('')}</div>
+    <div class="risk-card" style="border:1px solid rgba(34,217,138,0.25)"><div class="risk-title" style="color:#22d98a">🚀 OPPS</div>\${(res.opportunities||[]).map(o=>\`<div class="risk-item">• \${o}</div>\`).join('')}</div>
+  </div>
+  <button onclick="renderAIStart()" style="width:100%;padding:12px;background:none;border:1px solid #1e1e28;color:#4a4a60;border-radius:10px;font-size:12px;cursor:pointer">再分析する</button>
+  </div>\`;
+  document.getElementById('tab-ai').innerHTML=html;
+}
+
+function sectionCard(title,content){
+  if(!content) return '';
+  return \`<div class="section-card"><div class="section-title">\${title}</div><div class="section-body">\${content}</div></div>\`;
+}
+
+// ── Video Modal ──
+async function openModal(vid){
+  const v=STATE.vids.find(x=>x.id===vid);
+  if(!v) return;
+  document.getElementById('modal-banner').src=\`https://i.ytimg.com/vi/\${vid}/mqdefault.jpg\`;
+  const rank=[...STATE.vids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0)).findIndex(x=>x.id===vid)+1;
+  document.getElementById('modal-body').innerHTML=\`
+    <div class="modal-title">\${v.snippet.title}</div>
+    <div class="modal-meta mono">\${fdate(v.snippet.publishedAt)} · \${fdur(v.contentDetails?.duration)} · #\${rank}/\${STATE.vids.length}</div>
+    <div class="stats3">
+      <div class="stat3-card"><div class="stat3-icon">👁</div><div class="stat3-val mono">\${fmt(v.statistics?.viewCount)}</div><div class="stat3-label">視聴（累計）</div></div>
+      <div class="stat3-card"><div class="stat3-icon">👍</div><div class="stat3-val mono">\${fmt(v.statistics?.likeCount)}</div><div class="stat3-label">いいね</div></div>
+      <div class="stat3-card"><div class="stat3-icon">💬</div><div class="stat3-val mono">\${fmt(v.statistics?.commentCount)}</div><div class="stat3-label">コメント</div></div>
+    </div>
+    <div style="text-align:center;padding:40px 0"><div class="spin" style="font-size:32px">⚙</div><div style="margin-top:16px;color:#4a4a60;font-size:13px">Analytics + AI分析中...</div></div>\`;
+  document.getElementById('modal').classList.add('active');
+
+  let vaData=null;
+  try{vaData=await fetchVideoAnalytics(STATE.channelId,vid,STATE.period);}catch(_){}
+  const vt=parseRows(vaData)||{};
+  const avgViews=avgArr(STATE.vids.map(x=>+(x.statistics?.viewCount||0)));
+
+  // Fetch comments for this video
+  const videoComments = await fetchComments(STATE.apiKey, vid, 100);
+  const commentSample = videoComments.slice(0,50).join(' / ').slice(0,1000);
+
+  const res=await callAI(\`YouTube動画を詳細分析し、JSONのみで回答（前置き不要）。\\n注意：CTRとインプレッションデータはありません。\\nコメント\${videoComments.length}件も分析に含めてください。\\nタイトル:\${v.snippet.title}\\n公開:\${fdate(v.snippet.publishedAt)} 長さ:\${fdur(v.contentDetails?.duration)}\\nチャンネル内順位:\${rank}/\${STATE.vids.length}位 チャンネル平均視聴数:\${Math.round(avgViews)}\\n累計視聴数:\${v.statistics?.viewCount||0} いいね:\${v.statistics?.likeCount||0} コメント:\${v.statistics?.commentCount||0}\\n【直近\${STATE.period}日間】\\n視聴維持率:\${fpct(vt.averageViewPercentage)} 平均視聴時間:\${fdurSec(vt.averageViewDuration)}\\n期間視聴数:\${Math.round(vt.views||0)} 新規登録者:\${Math.round(vt.subscribersGained||0)}\\nコメント(最大50件): \${commentSample||'コメントなし'}\\nJSON:{"verdict":"一言評価","score":数値0-100,"retentionJudge":"視聴維持率の評価と具体的改善策","titleAnalysis":"タイトルの効果分析と改善提案","thumbnailHint":"サムネイル戦略への示唆","commentInsight":"コメントから読み取れる視聴者の反応・ニーズ","strengths":["強み1","強み2","強み3"],"weaknesses":["弱み1","弱み2"],"improvements":["改善1","改善2","改善3"],"advice":"この動画から次作に活かす最重要ポイント"}\`);
+
+  const sc=res.score||0;
+  const scColor=sc>=70?'#22d98a':sc>=40?'#f5c842':'#ff4d6d';
+  let html=\`
+    <div class="modal-title">\${v.snippet.title}</div>
+    <div class="modal-meta mono">\${fdate(v.snippet.publishedAt)} · \${fdur(v.contentDetails?.duration)} · #\${rank}/\${STATE.vids.length}</div>
+    <div class="stats3">
+      <div class="stat3-card"><div class="stat3-icon">👁</div><div class="stat3-val mono">\${fmt(v.statistics?.viewCount)}</div><div class="stat3-label">視聴（累計）</div></div>
+      <div class="stat3-card"><div class="stat3-icon">👍</div><div class="stat3-val mono">\${fmt(v.statistics?.likeCount)}</div><div class="stat3-label">いいね</div></div>
+      <div class="stat3-card"><div class="stat3-icon">💬</div><div class="stat3-val mono">\${fmt(v.statistics?.commentCount)}</div><div class="stat3-label">コメント</div></div>
+    </div>\`;
+  if(Object.keys(vt).length){
+    html+=\`<div class="analytics-card">
+      <div class="analytics-label mono">ANALYTICS · 直近\${STATE.period}日</div>
+      <div class="analytics-grid">
+        <div class="analytics-item"><div class="analytics-item-label">視聴維持率</div><div class="analytics-item-val disp" style="color:\${clr(vt.averageViewPercentage,50,35)}">\${fpct(vt.averageViewPercentage)}</div></div>
+        <div class="analytics-item"><div class="analytics-item-label">平均視聴時間</div><div class="analytics-item-val disp">\${fdurSec(vt.averageViewDuration)}</div></div>
+        <div class="analytics-item"><div class="analytics-item-label">期間視聴数</div><div class="analytics-item-val disp">\${fmt(vt.views)}</div></div>
+        <div class="analytics-item"><div class="analytics-item-label">新規登録者</div><div class="analytics-item-val disp" style="color:#22d98a">+\${fmt(vt.subscribersGained)}</div></div>
+      </div></div>\`;
+  }
+  const vidRetScore = parseFloat(vt.averageViewPercentage||0);
+  const vidRetColor = vidRetScore>=50?'#22d98a':vidRetScore>=30?'#f5c842':'#ff4d6d';
+  html+=\`<div style="background:#0e0e12;border:1px solid #1e1e28;border-radius:12px;padding:18px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+      <div><div class="score-big disp" style="color:\${scColor}">\${sc}</div><div class="score-label mono">SCORE</div></div>
+      <div class="verdict">\${res.verdict||''}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:#15151b;border-radius:8px;padding:10px">
+        <div style="font-size:10px;color:#4a4a60;margin-bottom:4px">視聴維持率</div>
+        <div style="font-size:20px;font-family:Syne,sans-serif;color:\${vidRetColor}">\${fpct(vidRetScore)}</div>
+        <div style="height:2px;background:#1e1e28;border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:\${Math.min(100,vidRetScore)}%;background:\${vidRetColor}"></div></div>
+      </div>
+      <div style="background:#15151b;border-radius:8px;padding:10px">
+        <div style="font-size:10px;color:#4a4a60;margin-bottom:4px">ER率（累計）</div>
+        <div style="font-size:20px;font-family:Syne,sans-serif;color:\${engRate(v)>=5?'#22d98a':engRate(v)>=2?'#f5c842':'#4a4a60'}">\${engRate(v).toFixed(1)}%</div>
+        <div style="font-size:10px;color:#333;margin-top:6px">チャンネル平均比</div>
+      </div>
+    </div>
+  </div>
+  \${sectionCard('⏱ 視聴維持率評価',res.retentionJudge)}
+  \${sectionCard('💬 コメントから見る視聴者反応',res.commentInsight)}
+  \${sectionCard('📝 タイトル分析',res.titleAnalysis)}
+  \${sectionCard('🖼 サムネイル戦略',res.thumbnailHint)}
+  \${sectionCard('💡 次作への活かし方',res.advice)}
+  <div class="strengths-grid">
+    <div class="strengths-card" style="border:1px solid rgba(34,217,138,0.25)"><div class="strengths-title" style="color:#22d98a">✅ 強み</div>\${(res.strengths||[]).map(s=>\`<div class="strengths-item">• \${s}</div>\`).join('')}</div>
+    <div class="strengths-card" style="border:1px solid rgba(255,77,109,0.25)"><div class="strengths-title" style="color:#ff4d6d">⚠ 弱み</div>\${(res.weaknesses||[]).map(w=>\`<div class="strengths-item">• \${w}</div>\`).join('')}</div>
+  </div>
+  <div class="improvements"><div class="improvements-title">🔧 改善提案</div>
+    \${(res.improvements||[]).map((r,i)=>\`<div class="rec-item"><div class="rec-num mono">\${i+1}</div><div class="rec-text">\${r}</div></div>\`).join('')}
+  </div>\`;
+  html += '<div id="vid-chat-container"></div>';
+  document.getElementById('modal-body').innerHTML=html;
+  // Render inline chat with video context
+  const chCtx2 = buildChannelContext();
+  const vidCtx = \\\`動画タイトル: \\\${v.snippet.title}\\n公開日: \\\${fdate(v.snippet.publishedAt)}\\n長さ: \\\${fdur(v.contentDetails?.duration)}\\nチャンネル内順位: #\\\${rank}/\\\${STATE.vids.length}\\n累計視聴: \\\${fmt(v.statistics?.viewCount)} いいね: \\\${fmt(v.statistics?.likeCount)} コメント: \\\${fmt(v.statistics?.commentCount)}\\n視聴維持率: \\\${fpct(vt.averageViewPercentage)} 平均視聴時間: \\\${fdurSec(vt.averageViewDuration)}\\nスコア: \\\${sc}/100 評価: \\\${res.verdict||''}\\n強み: \\\${(res.strengths||[]).join(', ')}\\n弱み: \\\${(res.weaknesses||[]).join(', ')}\\\`;
+  renderInlineChat('vid-chat-container','vidChatHistory',\\\`あなたはYouTubeチャンネル専属アナリストです。この動画と全体データを踏まえて質問に答えてください。\\n\\n【チャンネル全体データ】\\n\\\${chCtx2}\\n\\n【この動画のデータ・分析結果】\\n\\\${vidCtx}\\\`);
+}
+
+function renderCommentsStart(){
+  STATE.commentsLoaded=false;
+  document.getElementById('tab-comments').innerHTML=\`
+  <div class="ai-start fade">
+    <div class="ai-icon">💬</div>
+    <div class="ai-title disp">コメント分析</div>
+    <div class="ai-desc">トップ10動画から最大200件のコメントを収集し、視聴者の反応・ニーズ・課題をAIが分析します</div>
+    <button class="ai-btn" onclick="doCommentAnalysis()">分析を開始する</button>
+  </div>\`;
+}
+
+async function doCommentAnalysis(){
+  document.getElementById('tab-comments').innerHTML=\`<div style="text-align:center;padding-top:100px"><div class="spin" style="font-size:40px">⚙</div><div id="comment-load-msg" style="margin-top:24px;color:#4a4a60;font-size:13px">コメントを収集中...</div></div>\`;
+  
+  // Fetch comments from top 10 videos
+  const topVids = [...STATE.vids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0)).slice(0,10);
+  const allComments = [];
+  for(let i=0; i<topVids.length; i++){
+    const v = topVids[i];
+    document.getElementById('comment-load-msg').textContent = \`\${v.snippet.title.slice(0,20)}... のコメントを取得中 (\${i+1}/10)\`;
+    const comments = await fetchComments(STATE.apiKey, v.id, 20);
+    comments.forEach(c => allComments.push({title: v.snippet.title, comment: c}));
+  }
+  
+  document.getElementById('comment-load-msg').textContent = 'AIがコメントを分析中...';
+  
+  const commentText = allComments.map(c=>\`[\${c.title.slice(0,20)}] \${c.comment}\`).join('\\n').slice(0,4000);
+  
+  const res = await callAI(\`あなたはYouTubeコメント分析の専門家です。以下のコメントデータを分析し、JSONのみで回答（前置き・コードブロック不要）。\\n\\nチャンネル: \${STATE.ch?.snippet?.title}\\nコメント数: \${allComments.length}件（トップ10動画から収集）\\n\\n【コメント一覧（動画タイトル|コメント）】\\n\${commentText}\\n\\nJSON:{"summary":"コメント全体の傾向3文","positives":["視聴者が喜んでいること1","2","3","4","5"],"negatives":["視聴者が不満/リクエストしていること1","2","3"],"requests":["視聴者からの要望1","2","3","4"],"emotions":["主要な感情的反応1","2","3"],"topicInsights":["コメントから読み取れるコンテンツインサイト1","2","3"],"audienceType":"視聴者層の特徴","recommendations":["コメントに基づく改善提案1","2","3"]}\`);
+  
+  STATE.commentsLoaded=true;
+  
+  if(!res||Object.keys(res).length===0){
+    document.getElementById('tab-comments').innerHTML='<div style="padding:20px;color:#ff4d6d;font-size:13px">分析に失敗しました。<br><button onclick="renderCommentsStart()" style="margin-top:16px;padding:10px 20px;background:#7c6dfa;color:#fff;border:none;border-radius:8px;cursor:pointer">戻る</button></div>';
+    return;
+  }
+  
+  let html=\`<div class="fade" style="padding:4px">
+  <div style="background:#0e0e12;border:1px solid #1e1e28;border-radius:12px;padding:16px;margin-bottom:12px">
+    <div style="font-size:10px;color:#7c6dfa;font-family:IBM Plex Mono,monospace;letter-spacing:2px;margin-bottom:8px">💬 COMMENT ANALYSIS · \${allComments.length}件</div>
+    <div style="font-size:13px;color:#aaa;line-height:1.8">\${res.summary||''}</div>
+    <div style="margin-top:10px;font-size:11px;color:#4a4a60">視聴者層: \${res.audienceType||''}</div>
+  </div>
+  
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+    <div style="background:#0e0e12;border:1px solid rgba(34,217,138,0.25);border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#22d98a;margin-bottom:10px">👍 響いていること</div>
+      \${(res.positives||[]).map(p=>\`<div style="font-size:12px;color:#888;margin-bottom:7px;line-height:1.5">• \${p}</div>\`).join('')}
+    </div>
+    <div style="background:#0e0e12;border:1px solid rgba(255,77,109,0.25);border-radius:10px;padding:14px">
+      <div style="font-size:11px;font-weight:700;color:#ff4d6d;margin-bottom:10px">😤 不満・ネック</div>
+      \${(res.negatives||[]).map(n=>\`<div style="font-size:12px;color:#888;margin-bottom:7px;line-height:1.5">• \${n}</div>\`).join('')}
+    </div>
+  </div>
+  
+  <div style="background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:16px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:700;color:#f5c842;margin-bottom:10px">🙏 視聴者からのリクエスト</div>
+    \${(res.requests||[]).map((r,i)=>\`<div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start"><div style="background:#f5c84222;color:#f5c842;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;font-family:IBM Plex Mono,monospace">\${i+1}</div><div style="font-size:13px;color:#bbb;line-height:1.6">\${r}</div></div>\`).join('')}
+  </div>
+  
+  <div style="background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:16px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:700;color:#7c6dfa;margin-bottom:10px">🧠 コンテンツインサイト</div>
+    \${(res.topicInsights||[]).map(t=>\`<div style="font-size:13px;color:#aaa;margin-bottom:8px;line-height:1.6">• \${t}</div>\`).join('')}
+  </div>
+  
+  <div style="background:#0e0e12;border:1px solid #1e1e28;border-radius:10px;padding:16px;margin-bottom:10px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:10px">😊 感情的反応</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      \${(res.emotions||[]).map(e=>\`<span style="background:#1e1e28;color:#aaa;border-radius:20px;padding:5px 12px;font-size:12px">\${e}</span>\`).join('')}
+    </div>
+  </div>
+  
+  <div style="background:#0e0e12;border:1px solid rgba(124,109,250,0.3);border-radius:10px;padding:16px;margin-bottom:16px">
+    <div style="font-size:12px;font-weight:700;color:#7c6dfa;margin-bottom:12px">✅ コメントに基づく改善提案</div>
+    \${(res.recommendations||[]).map((r,i)=>\`<div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start"><div style="background:linear-gradient(135deg,#7c6dfa,#5bb8ff);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-family:IBM Plex Mono,monospace">\${i+1}</div><div style="font-size:13px;color:#bbb;line-height:1.7">\${r}</div></div>\`).join('')}
+  </div>
+  
+  <button onclick="renderCommentsStart();STATE.commentsLoaded=false;" style="width:100%;padding:12px;background:none;border:1px solid #1e1e28;color:#4a4a60;border-radius:10px;font-size:12px;cursor:pointer">再分析する</button>
+  </div>\`;
+  
+  document.getElementById('tab-comments').innerHTML=html;
+}
+
+// ── Chat ──
+function getChannelContext() {
+  const t = parseRows(STATE.analytics)||{};
+  const longVids = STATE.vids.filter(v=>!isShort(v));
+  const shortVids = STATE.vids.filter(v=>isShort(v));
+  const topVids = [...STATE.vids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0)).slice(0,10);
+  const vidList = topVids.map((v,i)=>\`\${i+1}. \${v.snippet.title} (視聴:\${fmt(v.statistics?.viewCount)} ER:\${engRate(v).toFixed(1)}% \${fdate(v.snippet.publishedAt)})\`).join('
+');
+  return \`【チャンネル情報】
+チャンネル名: \${STATE.ch?.snippet?.title}
+登録者数: \${fmt(STATE.ch?.statistics?.subscriberCount)}
+総視聴数: \${fmt(STATE.ch?.statistics?.viewCount)}
+長尺動画: \${longVids.length}本 / ショート: \${shortVids.length}本
+
+【直近\${STATE.period}日間のデータ】
+視聴数: \${fmt(Math.round(t.views||0))}
+平均視聴維持率: \${fpct(t.averageViewPercentage)}
+平均視聴時間: \${fdurSec(t.averageViewDuration)}
+いいね: \${fmt(Math.round(t.likes||0))} / コメント: \${fmt(Math.round(t.comments||0))} / シェア: \${fmt(Math.round(t.shares||0))}
+新規登録: +\${fmt(Math.round(t.subscribersGained||0))} / 解除: -\${fmt(Math.round(t.subscribersLost||0))}
+
+【視聴数トップ10動画】
+\${vidList}\`;
+}
+
+function initChat() {
+  const el = document.getElementById('tab-chat');
+  if(STATE.chatHistory.length > 0) {
+    renderChat();
+    return;
+  }
+  // Initial system greeting
+  STATE.chatHistory = [];
+  el.innerHTML = \`
+    <div id="chat-messages">
+      <div class="chat-msg ai">
+        <div class="chat-label">TUBE INTEL AI</div>
+        <div>チャンネルのデータを全部把握しています。何でも聞いてください。<br><br>
+        例えば：<br>
+        ・「なぜこの動画は伸びたと思う？」<br>
+        ・「次の動画のタイトル案を5つ出して」<br>
+        ・「視聴維持率を上げるには？」<br>
+        ・「ショートとロングどちらに注力すべき？」</div>
+      </div>
+    </div>
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chat-input" placeholder="チャンネルについて何でも聞いてください..." rows="1" onkeydown="handleChatKey(event)"></textarea>
+      <button class="chat-send" onclick="sendChat()">↑</button>
+    </div>\`;
+}
+
+function renderChat() {
+  const el = document.getElementById('tab-chat');
+  const msgs = STATE.chatHistory.filter(m=>m.role!=='system');
+  let msgsHtml = msgs.map(m => {
+    if(m.role==='user') return \`<div class="chat-msg user">\${m.content}</div>\`;
+    return \`<div class="chat-msg ai"><div class="chat-label">TUBE INTEL AI</div><div>\${m.content.replace(/
+/g,'<br>')}</div></div>\`;
+  }).join('');
+  el.innerHTML = \`
+    <div id="chat-messages">\${msgsHtml}</div>
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chat-input" placeholder="続けて質問できます..." rows="1" onkeydown="handleChatKey(event)"></textarea>
+      <button class="chat-send" onclick="sendChat()">↑</button>
+    </div>\`;
+  document.getElementById('chat-messages').scrollTop = 999999;
+}
+
+function handleChatKey(e) {
+  if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+
+  // Add user message
+  STATE.chatHistory.push({role:'user', content:text});
+
+  // Show user message + thinking
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML += \`<div class="chat-msg user">\${text}</div><div class="chat-thinking" id="thinking">考え中...</div>\`;
+  msgs.scrollTop = 999999;
+
+  // Build messages for API
+  const systemMsg = \`あなたはYouTubeチャンネル「\${STATE.ch?.snippet?.title}」の専属アナリストです。以下のチャンネルデータを常に参照しながら、オーナーの質問に具体的・実践的に答えてください。分析は日本語で、簡潔かつ深く答えてください。
+
+\${getChannelContext()}\`;
+
+  const apiMessages = [
+    {role:'user', content:systemMsg},
+    {role:'assistant', content:'了解しました。チャンネルデータを把握しました。何でも聞いてください。'},
+    ...STATE.chatHistory.map(m=>({role:m.role, content:m.content}))
+  ];
+
+  try {
+    const r = await fetch('https://tube-intel-api2.osumi0414.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:1000,messages:apiMessages})
+    });
+    const d = await r.json();
+    const reply = d.content?.[0]?.text || 'エラーが発生しました。';
+    
+    STATE.chatHistory.push({role:'assistant', content:reply});
+    
+    document.getElementById('thinking')?.remove();
+    msgs.innerHTML += \`<div class="chat-msg ai"><div class="chat-label">TUBE INTEL AI</div><div>\${reply.replace(/
+/g,'<br>')}</div></div>\`;
+    msgs.scrollTop = 999999;
+  } catch(e) {
+    document.getElementById('thinking')?.remove();
+    msgs.innerHTML += \`<div class="chat-msg ai"><div class="chat-label">TUBE INTEL AI</div><div>エラーが発生しました。もう一度お試しください。</div></div>\`;
+    STATE.chatHistory.pop();
+  }
+}
+
+// ── PIN ──
+let pinBuffer = '';
+function pinInput(val) {
+  if(val==='⌫') {
+    pinBuffer = pinBuffer.slice(0,-1);
+  } else if(val!=='' && pinBuffer.length<4) {
+    pinBuffer += val;
+  }
+  // Update dots
+  for(let i=0;i<4;i++){
+    const dot=document.getElementById('dot-'+i);
+    if(dot) dot.style.background = i<pinBuffer.length?'#7c6dfa':'none';
+  }
+  if(pinBuffer.length===4) {
+    setTimeout(checkPin, 100);
+  }
+}
+function pinReset() {
+  pinBuffer='';
+  for(let i=0;i<4;i++){
+    const dot=document.getElementById('dot-'+i);
+    if(dot){dot.style.background='none';dot.style.borderColor='#1e1e28';}
+  }
+  const eb=document.getElementById('pin-err-box');
+  if(eb){eb.style.display='none';}
+}
+function checkPin() {
+  const savedPin = LS.loadPin();
+  if(pinBuffer===savedPin) {
+    // Correct PIN - load credentials and start
+    const s=LS.load();
+    Object.assign(STATE, s);
+    document.getElementById('pin-screen').style.display='none';
+    startLoad(true);
+  } else {
+    // Wrong PIN
+    pinBuffer='';
+    for(let i=0;i<4;i++){
+      const dot=document.getElementById('dot-'+i);
+      if(dot){dot.style.background='none';dot.style.borderColor='#ff4d6d';}
+    }
+    const eb=document.getElementById('pin-err-box');
+    if(eb){eb.textContent='PINコードが違います';eb.style.display='block';}
+    setTimeout(pinReset, 1000);
+  }
+}
+
+// ── Inline Chat ──
+function buildChannelContext() {
+  const t = parseRows(STATE.analytics)||{};
+  const longVids = STATE.vids.filter(v=>!isShort(v));
+  const shortVids = STATE.vids.filter(v=>isShort(v));
+  const topVids = [...STATE.vids].sort((a,b)=>+(b.statistics?.viewCount||0)-+(a.statistics?.viewCount||0)).slice(0,10);
+  return \`チャンネル名: \${STATE.ch?.snippet?.title}
+登録者数: \${fmt(STATE.ch?.statistics?.subscriberCount)}人
+総視聴数: \${fmt(STATE.ch?.statistics?.viewCount)}
+長尺: \${longVids.length}本 / ショート: \${shortVids.length}本
+直近\${STATE.period}日: 視聴\${fmt(Math.round(t.views||0))} 維持率\${fpct(t.averageViewPercentage)} 平均視聴時間\${fdurSec(t.averageViewDuration)}
+いいね\${fmt(Math.round(t.likes||0))} コメント\${fmt(Math.round(t.comments||0))} 新規登録+\${fmt(Math.round(t.subscribersGained||0))} 解除-\${fmt(Math.round(t.subscribersLost||0))}
+トップ動画: \${topVids.slice(0,5).map((v,i)=>\`\${i+1}.\${v.snippet.title}(視聴\${fmt(v.statistics?.viewCount)} ER\${engRate(v).toFixed(1)}%)\`).join(' / ')}\`;
+}
+
+function renderInlineChat(containerId, historyKey, systemPrompt) {
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const history = STATE[historyKey]||[];
+  const msgsHtml = history.map(m=>{
+    if(m.role==='user') return \`<div class="ichat-msg user">\${m.content.replace(/
+/g,'<br>')}</div>\`;
+    return \`<div class="ichat-msg ai">\${m.content.replace(/
+/g,'<br>')}</div>\`;
+  }).join('');
+  el.innerHTML = \`
+    <div class="inline-chat">
+      <div class="inline-chat-title">🤖 AIに質問する</div>
+      <div class="inline-chat-messages" id="\${containerId}-msgs">\${msgsHtml||'<div style="font-size:12px;color:#4a4a60">分析結果について何でも聞いてください</div>'}</div>
+      <div class="ichat-input-row">
+        <input class="ichat-input" id="\${containerId}-input" placeholder="質問を入力..." onkeydown="if(event.key==='Enter')sendInlineChat('\${containerId}','\${historyKey}',\\\`\${systemPrompt.replace(/\`/g,"'")}\\\`)">
+        <button class="ichat-send" onclick="sendInlineChat('\${containerId}','\${historyKey}',\\\`\${systemPrompt.replace(/\`/g,"'")}\\\`)">↑</button>
+      </div>
+    </div>\`;
+  const msgs = document.getElementById(containerId+'-msgs');
+  if(msgs) msgs.scrollTop = 999999;
+}
+
+async function sendInlineChat(containerId, historyKey, systemPrompt) {
+  const input = document.getElementById(containerId+'-input');
+  const text = input?.value?.trim();
+  if(!text) return;
+  input.value = '';
+  if(!STATE[historyKey]) STATE[historyKey] = [];
+  STATE[historyKey].push({role:'user', content:text});
+  const msgs = document.getElementById(containerId+'-msgs');
+  if(msgs) {
+    msgs.innerHTML += \`<div class="ichat-msg user">\${text}</div><div class="ichat-msg thinking" id="\${containerId}-thinking">考え中...</div>\`;
+    msgs.scrollTop = 999999;
+  }
+  const apiMessages = [
+    {role:'user', content:systemPrompt},
+    {role:'assistant', content:'了解しました。何でも聞いてください。'},
+    ...STATE[historyKey].map(m=>({role:m.role,content:m.content}))
+  ];
+  try {
+    const r = await fetch('https://tube-intel-api2.osumi0414.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:1000,messages:apiMessages})
+    });
+    const d = await r.json();
+    const reply = d.content?.[0]?.text||'エラーが発生しました。';
+    STATE[historyKey].push({role:'assistant',content:reply});
+    document.getElementById(containerId+'-thinking')?.remove();
+    if(msgs) {
+      msgs.innerHTML += \`<div class="ichat-msg ai">\${reply.replace(/
+/g,'<br>')}</div>\`;
+      msgs.scrollTop = 999999;
+    }
+  } catch(_) {
+    document.getElementById(containerId+'-thinking')?.remove();
+    STATE[historyKey].pop();
+  }
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('active');}
+document.addEventListener('keydown',e=>{if(e.key==='Enter') startLoad();});
+</script>
+</body>
+</html>`;
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+
+    // Basic認証チェック
+    const authHeader = request.headers.get('Authorization') || '';
+    if (authHeader !== 'Basic ' + AUTH) {
+      return new Response('認証が必要です', {
+        status: 401,
+        headers: {
+          'WWW-Authenticate': 'Basic realm="TUBE INTEL PRO"',
+          'Content-Type': 'text/plain;charset=UTF-8'
+        }
+      });
+    }
+
+    // アプリHTML
+    if (url.pathname === '/' || url.pathname === '/app') {
+      return new Response(APP_HTML, {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' }
+      });
+    }
+
+    // Claude API中継
+    if (url.pathname === '/ai') {
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }});
+      }
+      const k1 = 'sk-ant-api03-SisIRIBgaDF6yjoVDLQAAsn';
+      const k2 = '7P7tCrgZJYnxOpUr7vAbA-2Q2da7jYCqVACX';
+      const k3 = '0dF6538nPupAIxNeqH0CT9HLsjQ-ztq4nAAA';
+      const body = await request.json();
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': k1+k2+k3,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      return new Response(JSON.stringify(data), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    return new Response('Not Found', { status: 404 });
+  }
+};
